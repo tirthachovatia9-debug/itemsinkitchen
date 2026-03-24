@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background rounded rect (iOS icon shape handled by OS, but good for PWA) -->
+  <rect width="512" height="512" rx="112" fill="#c8410a"/>
+  <!-- Subtle pattern -->
+  <circle cx="80" cy="80" r="120" fill="#b8380a" opacity="0.4"/>
+  <circle cx="440" cy="440" r="100" fill="#9e2e08" opacity="0.35"/>
+  
+  <!-- Pot body -->
+  <ellipse cx="256" cy="290" rx="140" ry="110" fill="#fff9f2"/>
+  <rect x="116" y="230" width="280" height="160" rx="12" fill="#fff9f2"/>
+  <ellipse cx="256" cy="395" rx="140" ry="18" fill="#e8dece"/>
+  
+  <!-- Pot lid -->
+  <ellipse cx="256" cy="228" rx="152" ry="22" fill="#ffe8d0"/>
+  <ellipse cx="256" cy="222" rx="152" ry="22" fill="#ffd0a0"/>
+  <!-- Lid handle -->
+  <rect x="232" y="185" width="48" height="40" rx="10" fill="#e8a020"/>
+  <ellipse cx="256" cy="185" rx="28" ry="10" fill="#f0b030"/>
+  
+  <!-- Pot handles -->
+  <rect x="60" y="250" width="60" height="30" rx="15" fill="#e8dece"/>
+  <rect x="392" y="250" width="60" height="30" rx="15" fill="#e8dece"/>
+  
+  <!-- Steam lines -->
+  <path d="M190 195 Q195 175 190 155 Q185 135 190 115" stroke="#fff9f2" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M256 185 Q261 165 256 145 Q251 125 256 105" stroke="#fff9f2" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M322 195 Q327 175 322 155 Q317 135 322 115" stroke="#fff9f2" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+  
+  <!-- Stock label on pot -->
+  <text x="256" y="325" font-family="Georgia, serif" font-size="38" font-weight="bold" text-anchor="middle" fill="#c8410a">STOCK</text>
+</svg>

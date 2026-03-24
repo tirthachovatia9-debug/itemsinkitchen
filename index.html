@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>KitchenStock</title>
+<link rel="apple-touch-icon" href="icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="KitchenStock"/>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream: #faf6f0;
+    --warm-white: #fff9f2;
+    --spice: #c8410a;
+    --spice-light: #e8571a;
+    --turmeric: #e8a020;
+    --sage: #6b8f6a;
+    --sage-light: #8fb58e;
+    --ink: #1a1208;
+    --ink-60: #1a120899;
+    --ink-30: #1a120840;
+    --ink-10: #1a12081a;
+    --card-bg: #fffdf8;
+    --border: #e8dece;
+    --danger: #d63b2f;
+    --warning: #e8a020;
+    --good: #6b8f6a;
+    --shadow: 0 2px 24px #1a12081a;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .app-header {
+    background: var(--spice);
+    color: #fff;
+    padding: 20px 20px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='28'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    pointer-events: none;
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: center; }
+  .app-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+  .app-title span { opacity: .7; font-weight: 700; }
+  .header-date { font-size: 12px; opacity: .8; font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+
+  /* Stats strip */
+  .stats-strip {
+    display: flex; gap: 12px;
+    padding: 0 16px;
+    margin-top: -40px;
+    position: relative; z-index: 10;
+  }
+  .stat-card {
+    flex: 1; background: var(--card-bg);
+    border-radius: 14px;
+    padding: 14px 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--ink); }
+  .stat-label { font-size: 10px; font-weight: 600; color: var(--ink-60); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+  .stat-card.warn .stat-value { color: var(--danger); }
+  .stat-card.money .stat-value { color: var(--spice); }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex; gap: 4px;
+    background: var(--ink-10);
+    border-radius: 12px;
+    padding: 4px;
+    margin: 20px 16px 0;
+  }
+  .tab-btn {
+    flex: 1; padding: 9px 4px;
+    border: none; background: transparent;
+    border-radius: 9px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--ink-60);
+    cursor: pointer; transition: all .2s;
+  }
+  .tab-btn.active { background: var(--card-bg); color: var(--spice); box-shadow: 0 1px 6px #1a120820; }
+
+  /* Section */
+  .section { padding: 16px; }
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; }
+  .btn-primary {
+    background: var(--spice); color: #fff;
+    border: none; border-radius: 10px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .2s;
+  }
+  .btn-primary:hover { background: var(--spice-light); }
+
+  /* Item cards */
+  .item-list { display: flex; flex-direction: column; gap: 10px; }
+  .item-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 8px #1a120810;
+    position: relative; overflow: hidden;
+    transition: transform .15s;
+  }
+  .item-card:active { transform: scale(.99); }
+  .item-card.low::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: var(--danger);
+    border-radius: 4px 0 0 4px;
+  }
+  .item-card.medium::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: var(--warning);
+    border-radius: 4px 0 0 4px;
+  }
+  .item-card.ok::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; background: var(--good);
+    border-radius: 4px 0 0 4px;
+  }
+  .item-emoji { font-size: 28px; width: 40px; text-align: center; flex-shrink: 0; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-weight: 600; font-size: 15px; }
+  .item-meta { font-size: 12px; color: var(--ink-60); margin-top: 2px; }
+  .item-qty { text-align: right; flex-shrink: 0; }
+  .qty-value { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+  .qty-unit { font-size: 11px; color: var(--ink-60); }
+  .qty-badge {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px;
+    margin-top: 4px; text-transform: uppercase; letter-spacing: .3px;
+  }
+  .badge-low { background: #fde8e6; color: var(--danger); }
+  .badge-medium { background: #fef3d8; color: #b07800; }
+  .badge-ok { background: #e6f0e6; color: #3d6b3c; }
+
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn {
+    border: 1px solid var(--border); background: var(--warm-white);
+    border-radius: 8px; padding: 6px 10px;
+    font-size: 14px; cursor: pointer;
+    transition: background .15s;
+  }
+  .icon-btn:hover { background: var(--ink-10); }
+  .icon-btn.del:hover { background: #fde8e6; border-color: var(--danger); }
+
+  /* Modal overlay */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: #1a120880; backdrop-filter: blur(4px);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--warm-white);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 -4px 40px #1a120830;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--ink-60); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: block; }
+  .form-input, .form-select {
+    width: 100%; padding: 12px 14px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    background: var(--card-bg); color: var(--ink);
+    outline: none; transition: border .2s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--spice); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-cancel {
+    flex: 1; padding: 12px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: transparent; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    color: var(--ink-60);
+  }
+  .btn-save {
+    flex: 2; padding: 12px;
+    background: var(--spice); color: #fff; border: none;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-save:hover { background: var(--spice-light); }
+
+  /* Expense Log */
+  .expense-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 8px #1a120810;
+    margin-bottom: 10px;
+  }
+  .expense-icon { font-size: 22px; }
+  .expense-info { flex: 1; }
+  .expense-name { font-weight: 600; font-size: 14px; }
+  .expense-date { font-size: 11px; color: var(--ink-60); margin-top: 2px; }
+  .expense-amount { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--spice); }
+
+  /* Monthly Chart */
+  .chart-wrap {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .chart-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 120px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; background: var(--spice); border-radius: 6px 6px 0 0; min-height: 4px; transition: height .4s ease; position: relative; }
+  .bar.current { background: var(--turmeric); }
+  .bar-label { font-size: 10px; font-weight: 600; color: var(--ink-60); }
+  .bar-val { font-size: 9px; color: var(--ink-60); }
+
+  /* Restock alert */
+  .alert-box {
+    background: #fde8e6;
+    border: 1.5px solid #f5b4ad;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .alert-icon { font-size: 22px; flex-shrink: 0; }
+  .alert-text { font-size: 13px; font-weight: 500; color: #8b1a14; }
+  .alert-text strong { display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+
+  /* Category filter */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: var(--card-bg);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    color: var(--ink-60); transition: all .15s;
+  }
+  .filter-chip.active { background: var(--spice); color: #fff; border-color: var(--spice); }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 48px 20px; color: var(--ink-60); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* Search */
+  .search-wrap { position: relative; margin-bottom: 14px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+  .search-input {
+    width: 100%; padding: 11px 14px 11px 38px;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    background: var(--card-bg); color: var(--ink); outline: none;
+    transition: border .2s;
+  }
+  .search-input:focus { border-color: var(--spice); }
+
+  /* Qty adjust */
+  .qty-adjust { display: flex; align-items: center; gap: 8px; }
+  .adj-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--warm-white);
+    font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-weight: 700;
+    color: var(--spice);
+  }
+  .adj-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; min-width: 32px; text-align: center; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 22px;
+    border-radius: 40px; font-size: 13px; font-weight: 600;
+    z-index: 200; animation: fadeInOut 2.5s forwards;
+    white-space: nowrap;
+  }
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  }
+
+  /* Summary row */
+  .summary-row {
+    background: linear-gradient(135deg, var(--spice) 0%, #9e340a 100%);
+    color: #fff; border-radius: var(--radius);
+    padding: 18px 20px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 20px #c8410a40;
+  }
+  .summary-label { font-size: 12px; opacity: .85; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .summary-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+  .summary-sub { font-size: 11px; opacity: .75; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div class="app-header">
+    <div class="header-top">
+      <div class="app-title">Kitchen<span>Stock</span></div>
+      <div class="header-date" id="header-date"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Items</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-value" id="stat-low">0</div>
+      <div class="stat-label">Restock</div>
+    </div>
+    <div class="stat-card money">
+      <div class="stat-value" id="stat-today">₹0</div>
+      <div class="stat-label">Today</div>
+    </div>
+    <div class="stat-card money">
+      <div class="stat-value" id="stat-month">₹0</div>
+      <div class="stat-label">This Month</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('stock')">🧺 Stock</button>
+    <button class="tab-btn" onclick="showTab('restock')">🔔 Alerts</button>
+    <button class="tab-btn" onclick="showTab('expenses')">💰 Expenses</button>
+    <button class="tab-btn" onclick="showTab('charts')">📊 Reports</button>
+  </div>
+
+  <!-- STOCK TAB -->
+  <div id="tab-stock" class="section">
+    <div class="section-head">
+      <div class="section-title">My Pantry</div>
+      <button class="btn-primary" onclick="openAddModal()">＋ Add Item</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search-input" placeholder="Search items…" oninput="renderStock()"/>
+    </div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="item-list" id="item-list"></div>
+  </div>
+
+  <!-- RESTOCK ALERTS TAB -->
+  <div id="tab-restock" class="section" style="display:none">
+    <div class="section-head">
+      <div class="section-title">Restock Needed</div>
+    </div>
+    <div id="alert-list"></div>
+  </div>
+
+  <!-- EXPENSES TAB -->
+  <div id="tab-expenses" class="section" style="display:none">
+    <div class="section-head">
+      <div class="section-title">Expense Log</div>
+      <button class="btn-primary" onclick="openExpenseModal()">＋ Log Expense</button>
+    </div>
+    <div class="summary-row">
+      <div>
+        <div class="summary-label">This Month</div>
+        <div class="summary-value" id="exp-month-total">₹0</div>
+        <div class="summary-sub" id="exp-month-label"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="summary-label">Today</div>
+        <div class="summary-value" id="exp-today-total">₹0</div>
+        <div class="summary-sub">Daily spend</div>
+      </div>
+    </div>
+    <div id="expense-list"></div>
+  </div>
+
+  <!-- CHARTS TAB -->
+  <div id="tab-charts" class="section" style="display:none">
+    <div class="section-head">
+      <div class="section-title">Monthly Report</div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Monthly Expenditure (₹)</div>
+      <div class="bar-chart" id="bar-chart"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Top Spending Categories</div>
+      <div id="category-breakdown"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT ITEM MODAL -->
+<div class="modal-overlay hidden" id="item-modal">
+  <div class="modal">
+    <div class="modal-title" id="item-modal-title">Add Item</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Emoji Icon</label>
+        <input class="form-input" id="f-emoji" placeholder="🥛" maxlength="2"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="f-category">
+          <option>Dairy</option>
+          <option>Grains</option>
+          <option>Vegetables</option>
+          <option>Fruits</option>
+          <option>Spices</option>
+          <option>Pulses</option>
+          <option>Snacks</option>
+          <option>Beverages</option>
+          <option>Oils</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Item Name</label>
+      <input class="form-input" id="f-name" placeholder="e.g. Basmati Rice"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Current Qty</label>
+        <input class="form-input" id="f-qty" type="number" min="0" placeholder="5"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unit</label>
+        <select class="form-select" id="f-unit">
+          <option>kg</option>
+          <option>g</option>
+          <option>L</option>
+          <option>ml</option>
+          <option>pcs</option>
+          <option>packets</option>
+          <option>bottles</option>
+          <option>cans</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Min Stock (restock trigger)</label>
+        <input class="form-input" id="f-min" type="number" min="0" placeholder="1"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avg Cost (₹)</label>
+        <input class="form-input" id="f-cost" type="number" min="0" placeholder="120"/>
+      </div>
+    </div>
+    <input type="hidden" id="f-edit-id"/>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeItemModal()">Cancel</button>
+      <button class="btn-save" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="modal-overlay hidden" id="expense-modal">
+  <div class="modal">
+    <div class="modal-title">Log Expense</div>
+    <div class="form-group">
+      <label class="form-label">What did you buy?</label>
+      <input class="form-input" id="ef-name" placeholder="e.g. Vegetables from market"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input class="form-input" id="ef-amount" type="number" min="0" placeholder="350"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="ef-category">
+          <option>Dairy</option>
+          <option>Grains</option>
+          <option>Vegetables</option>
+          <option>Fruits</option>
+          <option>Spices</option>
+          <option>Pulses</option>
+          <option>Snacks</option>
+          <option>Beverages</option>
+          <option>Oils</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="ef-date" type="date"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeExpenseModal()">Cancel</button>
+      <button class="btn-save" onclick="saveExpense()">Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+let items = JSON.parse(localStorage.getItem('ks_items') || '[]');
+let expenses = JSON.parse(localStorage.getItem('ks_expenses') || '[]');
+
+function saveData() {
+  localStorage.setItem('ks_items', JSON.stringify(items));
+  localStorage.setItem('ks_expenses', JSON.stringify(expenses));
+}
+
+// Seed demo data first run
+if (!items.length) {
+  items = [
+    { id: 1, name: 'Basmati Rice', emoji: '🌾', category: 'Grains', qty: 2, unit: 'kg', min: 1, cost: 120 },
+    { id: 2, name: 'Whole Milk', emoji: '🥛', category: 'Dairy', qty: 0.5, unit: 'L', min: 1, cost: 60 },
+    { id: 3, name: 'Toor Dal', emoji: '🫘', category: 'Pulses', qty: 3, unit: 'kg', min: 1, cost: 160 },
+    { id: 4, name: 'Turmeric', emoji: '🟡', category: 'Spices', qty: 0.1, unit: 'kg', min: 0.1, cost: 40 },
+    { id: 5, name: 'Onions', emoji: '🧅', category: 'Vegetables', qty: 4, unit: 'kg', min: 2, cost: 30 },
+    { id: 6, name: 'Sunflower Oil', emoji: '🫙', category: 'Oils', qty: 0.5, unit: 'L', min: 1, cost: 180 },
+    { id: 7, name: 'Tomatoes', emoji: '🍅', category: 'Vegetables', qty: 1, unit: 'kg', min: 1, cost: 40 },
+    { id: 8, name: 'Chai Tea', emoji: '🍵', category: 'Beverages', qty: 0.2, unit: 'kg', min: 0.1, cost: 80 },
+  ];
+  const today = new Date().toISOString().slice(0,10);
+  expenses = [
+    { id: 1, name: 'Weekly vegetables', category: 'Vegetables', amount: 280, date: today },
+    { id: 2, name: 'Dairy & milk', category: 'Dairy', amount: 120, date: today },
+  ];
+  saveData();
+}
+
+// ─── DATE ───────────────────────────────────────────────────
+const now = new Date();
+document.getElementById('header-date').textContent =
+  now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+
+// ─── TAB LOGIC ──────────────────────────────────────────────
+let currentTab = 'stock';
+function showTab(tab) {
+  currentTab = tab;
+  ['stock','restock','expenses','charts'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['stock','restock','expenses','charts'][i] === tab);
+  });
+  renderAll();
+}
+
+// ─── CATEGORIES ─────────────────────────────────────────────
+let activeCategory = 'All';
+function renderFilters() {
+  const cats = ['All', ...new Set(items.map(i => i.category))];
+  document.getElementById('filter-row').innerHTML = cats.map(c =>
+    `<button class="filter-chip ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</button>`
+  ).join('');
+}
+function setCategory(c) { activeCategory = c; renderStock(); }
+
+// ─── STOCK RENDER ───────────────────────────────────────────
+function getStatus(item) {
+  if (item.qty <= 0) return 'low';
+  if (item.qty <= item.min) return 'low';
+  if (item.qty <= item.min * 1.5) return 'medium';
+  return 'ok';
+}
+function badgeHtml(status) {
+  if (status === 'low') return `<span class="qty-badge badge-low">⚠ Restock</span>`;
+  if (status === 'medium') return `<span class="qty-badge badge-medium">~ Low</span>`;
+  return `<span class="qty-badge badge-ok">✓ OK</span>`;
+}
+
+function renderStock() {
+  renderFilters();
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let filtered = items.filter(i =>
+    (activeCategory === 'All' || i.category === activeCategory) &&
+    i.name.toLowerCase().includes(q)
+  );
+  const list = document.getElementById('item-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🧺</div><div class="empty-text">No items found</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(item => {
+    const status = getStatus(item);
+    return `
+    <div class="item-card ${status}">
+      <div class="item-emoji">${item.emoji}</div>
+      <div class="item-info">
+        <div class="item-name">${item.name}</div>
+        <div class="item-meta">${item.category} · Min: ${item.min} ${item.unit}</div>
+      </div>
+      <div class="item-qty">
+        <div class="qty-adjust">
+          <button class="adj-btn" onclick="adjustQty(${item.id}, -1)">−</button>
+          <div class="adj-val">${item.qty}</div>
+          <button class="adj-btn" onclick="adjustQty(${item.id}, 1)">+</button>
+        </div>
+        <div style="text-align:center;margin-top:4px"><span class="qty-unit">${item.unit}</span></div>
+        <div style="text-align:center">${badgeHtml(status)}</div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn" onclick="openEditModal(${item.id})">✏️</button>
+        <button class="icon-btn del" onclick="deleteItem(${item.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function adjustQty(id, delta) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.qty = Math.max(0, parseFloat((item.qty + delta).toFixed(2)));
+  saveData();
+  renderAll();
+  if (getStatus(item) === 'low') showToast(`⚠️ ${item.name} is low! Time to restock.`);
+}
+
+function deleteItem(id) {
+  if (!confirm('Remove this item?')) return;
+  items = items.filter(i => i.id !== id);
+  saveData(); renderAll();
+}
+
+// ─── RESTOCK ALERTS ─────────────────────────────────────────
+function renderAlerts() {
+  const low = items.filter(i => getStatus(i) !== 'ok');
+  const list = document.getElementById('alert-list');
+  if (!low.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">All stocked up! Nothing to restock.</div></div>`;
+    return;
+  }
+  list.innerHTML = low.map(item => `
+    <div class="alert-box">
+      <div class="alert-icon">${item.emoji}</div>
+      <div class="alert-text">
+        <strong>${item.name}</strong>
+        Only ${item.qty} ${item.unit} left · Min needed: ${item.min} ${item.unit}
+        ${item.cost ? `· Approx ₹${item.cost} to restock` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ─── EXPENSES ───────────────────────────────────────────────
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function thisMonthStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+function renderExpenses() {
+  const todayTotal = expenses.filter(e => e.date === todayStr()).reduce((s,e) => s+e.amount, 0);
+  const monthTotal = expenses.filter(e => e.date.startsWith(thisMonthStr())).reduce((s,e) => s+e.amount, 0);
+  document.getElementById('exp-today-total').textContent = `₹${todayTotal}`;
+  document.getElementById('exp-month-total').textContent = `₹${monthTotal}`;
+  const d = new Date();
+  document.getElementById('exp-month-label').textContent = d.toLocaleString('en-IN',{month:'long'}) + ' ' + d.getFullYear();
+
+  const sorted = [...expenses].sort((a,b) => b.date.localeCompare(a.date));
+  const catIcons = {Dairy:'🥛',Grains:'🌾',Vegetables:'🥬',Fruits:'🍎',Spices:'🌶️',Pulses:'🫘',Snacks:'🍿',Beverages:'🍵',Oils:'🫙',Other:'🛒'};
+  document.getElementById('expense-list').innerHTML = sorted.length ? sorted.map(e => `
+    <div class="expense-card">
+      <div class="expense-icon">${catIcons[e.category]||'🛒'}</div>
+      <div class="expense-info">
+        <div class="expense-name">${e.name}</div>
+        <div class="expense-date">${new Date(e.date+'T00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})} · ${e.category}</div>
+      </div>
+      <div>
+        <div class="expense-amount">₹${e.amount}</div>
+        <button class="icon-btn del" style="margin-top:4px;width:100%;font-size:12px" onclick="deleteExpense(${e.id})">🗑️</button>
+      </div>
+    </div>`).join('') :
+    `<div class="empty"><div class="empty-icon">💰</div><div class="empty-text">No expenses logged yet</div></div>`;
+}
+
+function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  saveData(); renderAll();
+}
+
+// ─── CHARTS ─────────────────────────────────────────────────
+function renderCharts() {
+  // Last 6 months
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleString('en-IN',{month:'short'}) });
+  }
+  const totals = months.map(m => expenses.filter(e => e.date.startsWith(m.key)).reduce((s,e)=>s+e.amount,0));
+  const max = Math.max(...totals, 1);
+
+  document.getElementById('bar-chart').innerHTML = months.map((m,i) => `
+    <div class="bar-col">
+      <div class="bar-val">₹${totals[i]||''}</div>
+      <div class="bar ${i===5?'current':''}" style="height:${Math.round((totals[i]/max)*100)}px"></div>
+      <div class="bar-label">${m.label}</div>
+    </div>`).join('');
+
+  // Category breakdown for current month
+  const catTotals = {};
+  expenses.filter(e => e.date.startsWith(thisMonthStr())).forEach(e => {
+    catTotals[e.category] = (catTotals[e.category]||0) + e.amount;
+  });
+  const total = Object.values(catTotals).reduce((s,v)=>s+v,0)||1;
+  const colors = ['#c8410a','#e8a020','#6b8f6a','#8b5cf6','#3b82f6','#ec4899','#14b8a6','#f97316','#84cc16','#64748b'];
+  const entries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('category-breakdown').innerHTML = entries.length ? entries.map(([cat,val],i) => `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600">${cat}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--spice)">₹${val}</span>
+      </div>
+      <div style="background:var(--ink-10);border-radius:4px;height:8px">
+        <div style="background:${colors[i%colors.length]};width:${Math.round(val/total*100)}%;height:8px;border-radius:4px;transition:width .4s"></div>
+      </div>
+    </div>`).join('') :
+    `<div class="empty" style="padding:20px"><div class="empty-text">No data for this month yet</div></div>`;
+}
+
+// ─── STATS ──────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-total').textContent = items.length;
+  document.getElementById('stat-low').textContent = items.filter(i => getStatus(i) !== 'ok').length;
+  const todayTotal = expenses.filter(e => e.date === todayStr()).reduce((s,e)=>s+e.amount,0);
+  const monthTotal = expenses.filter(e => e.date.startsWith(thisMonthStr())).reduce((s,e)=>s+e.amount,0);
+  document.getElementById('stat-today').textContent = `₹${todayTotal}`;
+  document.getElementById('stat-month').textContent = `₹${monthTotal}`;
+}
+
+function renderAll() {
+  renderStats();
+  if (currentTab==='stock') renderStock();
+  if (currentTab==='restock') renderAlerts();
+  if (currentTab==='expenses') renderExpenses();
+  if (currentTab==='charts') renderCharts();
+}
+
+// ─── ITEM MODAL ─────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('item-modal-title').textContent = 'Add Item';
+  document.getElementById('f-edit-id').value = '';
+  ['f-emoji','f-name','f-qty','f-min','f-cost'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-category').value = 'Grains';
+  document.getElementById('f-unit').value = 'kg';
+  document.getElementById('item-modal').classList.remove('hidden');
+}
+function openEditModal(id) {
+  const item = items.find(i => i.id === id);
+  document.getElementById('item-modal-title').textContent = 'Edit Item';
+  document.getElementById('f-edit-id').value = id;
+  document.getElementById('f-emoji').value = item.emoji;
+  document.getElementById('f-name').value = item.name;
+  document.getElementById('f-category').value = item.category;
+  document.getElementById('f-qty').value = item.qty;
+  document.getElementById('f-unit').value = item.unit;
+  document.getElementById('f-min').value = item.min;
+  document.getElementById('f-cost').value = item.cost || '';
+  document.getElementById('item-modal').classList.remove('hidden');
+}
+function closeItemModal() { document.getElementById('item-modal').classList.add('hidden'); }
+function saveItem() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Please enter item name'); return; }
+  const editId = document.getElementById('f-edit-id').value;
+  const data = {
+    name,
+    emoji: document.getElementById('f-emoji').value || '📦',
+    category: document.getElementById('f-category').value,
+    qty: parseFloat(document.getElementById('f-qty').value) || 0,
+    unit: document.getElementById('f-unit').value,
+    min: parseFloat(document.getElementById('f-min').value) || 1,
+    cost: parseFloat(document.getElementById('f-cost').value) || 0,
+  };
+  if (editId) {
+    const idx = items.findIndex(i => i.id === parseInt(editId));
+    items[idx] = { ...items[idx], ...data };
+  } else {
+    data.id = Date.now();
+    items.push(data);
+  }
+  saveData(); closeItemModal(); renderAll();
+  showToast(editId ? '✅ Item updated!' : '✅ Item added!');
+}
+
+// ─── EXPENSE MODAL ──────────────────────────────────────────
+function openExpenseModal() {
+  document.getElementById('ef-name').value = '';
+  document.getElementById('ef-amount').value = '';
+  document.getElementById('ef-date').value = todayStr();
+  document.getElementById('expense-modal').classList.remove('hidden');
+}
+function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
+function saveExpense() {
+  const name = document.getElementById('ef-name').value.trim();
+  const amount = parseFloat(document.getElementById('ef-amount').value);
+  if (!name || !amount) { alert('Please fill name and amount'); return; }
+  expenses.push({ id: Date.now(), name, category: document.getElementById('ef-category').value, amount, date: document.getElementById('ef-date').value });
+  saveData(); closeExpenseModal(); renderAll();
+  showToast('✅ Expense logged!');
+}
+
+// ─── TOAST ──────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// Close modals on overlay click
+document.getElementById('item-modal').addEventListener('click', function(e) { if (e.target === this) closeItemModal(); });
+document.getElementById('expense-modal').addEventListener('click', function(e) { if (e.target === this) closeExpenseModal(); });
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
